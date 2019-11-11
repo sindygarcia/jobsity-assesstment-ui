@@ -4,11 +4,17 @@ import axios from '../axiosConfig';
 import { router } from '../router/router';
 import { connect } from "react-redux";
 import { setUser } from '../actions/common';
+import socketIOClient from 'socket.io-client'
+const socket = socketIOClient('http://localhost:8000/');
 
 class Chatroom extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            displayErrorMessage: false,
+            chatMessages: [],
+            message: ""
+        };
     }
 
     componentWillMount() {
@@ -20,6 +26,26 @@ class Chatroom extends React.Component {
                 router.stateService.go('login', {});
             }
         }
+    }
+
+    componentDidMount() {
+        socket.emit("load_initial_data");
+        socket.on("get_messages", this.handleInitialData);
+        socket.on('update_messages', this.updateMessages);
+    }
+
+    componentWillUnmount() {
+        socket.off("get_messages");
+        socket.off("update_messages");
+    }
+
+    updateMessages = () => {
+        socket.emit("load_initial_data");
+        this.setState({ message : ""});
+    }
+
+    handleInitialData = ( messages) => {
+        this.setState({ chatMessages: messages.reverse() });
     }
 
     handleChange = (event) => {
@@ -37,24 +63,35 @@ class Chatroom extends React.Component {
             localStorage.setItem("state", null);
             localStorage.setItem("authToken", null);
             router.stateService.go('login', {});
-        }).catch((error) => console.log(error));
+        }).catch((error) => {
+            console.log(error)
+            this.setState({
+                displayErrorMessage: true
+            });
+        });
+    }
+
+    isMessageWithStockCommand = (message) => {
+        let commandRegex = /\/stock=([a-z0-9A-Z\.|\-|\_]*)$/;
+        return commandRegex.test(message);
     }
 
     onSendMessage = async (message) => {
-        try{
-            let sendMessage = axios().post("/postMessage", {
-                    username: this.props.storage.user.username, 
-                    message: message, 
-                    date: new Date()
-                });
+        try {
+            let newMessage = {
+                username: this.props.user.username,
+                message: message,
+                chatId: 1
+            };
 
-            let response = sendMessage.response;
-            if(response.status === 201) {
-                this.setState({
-                    message: ""
+            let isMessageforBot = this.isMessageWithStockCommand(message);
+            if(!isMessageforBot) {
+                socket.emit("sendMessage", newMessage);
+            }else{
+                let botMessage = axios().get("/stock", {
+                    username: 'bot',
+                    message: message
                 });
-
-                //update chatMessages ?
             }
         }catch(err) {
             console.log(err);
@@ -62,22 +99,36 @@ class Chatroom extends React.Component {
     }
 
     render() {
-        let { message, chatMessages } = this.state;
+        let { message, chatMessages, displayErrorMessage } = this.state;
 
         return (
             <div className="container mt-5">
-                <div name="chatroom" className="form-control messagesArea mb-2" value={chatMessages}>
-                    Messages here .....
+                <div name="chatroom" className="form-control overflow-auto messagesArea mb-2" value={chatMessages}>
+                   {
+                       chatMessages.map( message => {
+                           return (
+                               <div className="row mx-2 " key={message.id}>
+                                   <span className="font-italic timestamp">{new Date(message.createdAt).toLocaleString()}&nbsp;&nbsp;</span>
+                                   <h6 className="font-weight-bold">{message.sourceUser.username}:&nbsp;&nbsp;</h6>
+                                   <p>{message.content}</p>
+                               </div>
+                           );
+                       })
+                   }
                 </div>
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" placeholder="Type Message..." value={message} onChange={this.handleChange}/>
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-secondary" type="button" onClick={() => this.onSendMessage(message)}>Send</button>
+                <div className="input-group mb-3">
+                    <input type="text" className="form-control" placeholder="Type a Message..." name="message" value={message} onChange={this.handleChange}/>
+                    <div className="input-group-append">
+                        <button className="btn btn-outline-secondary" type="button" onClick={() => this.onSendMessage(message)}>Send</button>
                         </div>
                 </div>
                 <div className="text-left">
                     <button className="btn btn-link" onClick={this.onLogout}>Logout</button>
                 </div>
+                {
+                    displayErrorMessage &&
+                        <div class="alert alert-danger" role="alert">Ops! Something went wrong.</div>
+                }
             </div>
         );
     }

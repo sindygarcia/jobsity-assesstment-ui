@@ -7,6 +7,8 @@ export default class Signup extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            username: "",
+            password: "",
             unknownError: false
         };
     }
@@ -23,8 +25,7 @@ export default class Signup extends React.Component {
     onSave = async (username, password) => {
         this.setState({ unknownError: false });
         try {
-            let save = await axios().post("/signup", { username: username, password: password });
-            let response = save.response;
+            let response = await axios().post("/signup", { username: username, password: password });
 
             if (response.status === 201) {
                 console.log("User created");
@@ -54,7 +55,7 @@ export default class Signup extends React.Component {
                 </form>
                 {
                     unknownError &&
-                    <div class="alert alert-danger" role="alert"> Ops! something went wrong. Try again later.</div>
+                        <div className= "col-md-6 offset-0 offset-md-1 alert alert-danger" role="alert"> Ops! something went wrong. Try again later.</div>
                 }
             </div>
         );

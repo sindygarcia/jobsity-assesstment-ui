@@ -9,9 +9,9 @@ class Login extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            userNotFound: false,
-            invalidCredentials: false,
-            unknownError: false
+            username: "",
+            password: "",
+            invalidCredentials: false
         };
     }
 
@@ -26,10 +26,10 @@ class Login extends React.Component {
 
     onLogin = async (username, password) => {
         this.setState({ userNotFound: false, invalidCredentials: false, unknownError: false });
+        
         try {  
-            let login = await axios().post("/login", { username: username, password: password });
-            let response = login.response;
-
+            let response = await axios().post("/login", { username: username, password: password });
+            
             if(response.status === 200) {
                 localStorage.setItem("authToken", response.data.authToken);
                 this.props.dispatch( 
@@ -41,13 +41,7 @@ class Login extends React.Component {
                 router.stateService.go('chatroom', {});
             }
         }catch(err) {
-            if(err.status === 404) {
-                this.setState({ userNotFound: true });
-            } else if(err.status === 401) {
-                this.setState({ invalidCredentials: true });
-            }else {
-                this.setState({ unknownError: true });
-            }
+            this.setState({ invalidCredentials: true });
         }
     }
 
@@ -56,7 +50,7 @@ class Login extends React.Component {
     }
 
     render() {
-        let { username, password, userNotFound, invalidCredentials, unknownError} = this.state;
+        let { username, password, invalidCredentials} = this.state;
 
         return (
             <div className="container">
@@ -76,17 +70,9 @@ class Login extends React.Component {
                         </div>
                     </div>
                 </form> 
-                { 
-                    userNotFound &&
-                        <div class="alert alert-danger" role="alert">User does not exist</div>
-                }
                 {
                     invalidCredentials &&
-                        <div class="alert alert-danger" role="alert">Invalid Username and/or Password</div>
-                }
-                {
-                    unknownError && 
-                        <div class="alert alert-danger" role="alert">Ops! something went wrong. Try again later</div>
+                        <div className="col-md-6 offset-0 offset-md-1 alert alert-danger" role="alert">Invalid Username or Password</div>
                 }
             </div>
         );

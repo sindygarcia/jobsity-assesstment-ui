@@ -2,3 +2,7 @@
     height: 25rem !important;
     border-color: lightgray;
 }
+
+.timestamp {
+    font-size: 12px;
+}
