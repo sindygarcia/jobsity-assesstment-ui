@@ -32,11 +32,13 @@ class Chatroom extends React.Component {
         socket.emit("load_initial_data");
         socket.on("get_messages", this.handleInitialData);
         socket.on('update_messages', this.updateMessages);
+        socket.on("get_bot_message", this.handleBotMessages);
     }
 
     componentWillUnmount() {
         socket.off("get_messages");
         socket.off("update_messages");
+        socket.off("get_bot_message");
     }
 
     updateMessages = () => {
@@ -88,14 +90,20 @@ class Chatroom extends React.Component {
             if(!isMessageforBot) {
                 socket.emit("sendMessage", newMessage);
             }else{
-                let botMessage = axios().get("/stock", {
-                    username: 'bot',
-                    message: message
-                });
+                socket.emit("getStockStatus", message.split('=')[1]);
             }
         }catch(err) {
             console.log(err);
         }
+    }
+
+    handleBotMessages = ( message ) => {
+        let { chatMessages } = this.state;
+        chatMessages.push(message)
+        this.setState({
+            chatMessages,
+            message: ""
+        })
     }
 
     render() {
@@ -109,7 +117,7 @@ class Chatroom extends React.Component {
                            return (
                                <div className="row mx-2 " key={message.id}>
                                    <span className="font-italic timestamp">{new Date(message.createdAt).toLocaleString()}&nbsp;&nbsp;</span>
-                                   <h6 className="font-weight-bold">{message.sourceUser.username}:&nbsp;&nbsp;</h6>
+                                   <h6 className="font-weight-bold">{message.userInfo.username}:&nbsp;&nbsp;</h6>
                                    <p>{message.content}</p>
                                </div>
                            );
