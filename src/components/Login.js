@@ -53,7 +53,8 @@ class Login extends React.Component {
         let { username, password, invalidCredentials} = this.state;
 
         return (
-            <div className="container">
+            <div className="container mt-5">
+                <div className="col-md-6 offset-0 offset-md-1 text-center app-title"><h2>Chat Assesstment</h2></div>
                 <form className="col-md-6 offset-0 offset-md-1 mt-3">
                     <div className="form-group mb-2">
                         <input type="email" name="username" className="form-control" placeholder="Username" value={username} onChange={this.handleChange} />
@@ -62,12 +63,8 @@ class Login extends React.Component {
                         <input type="password" name="password" className="form-control" placeholder="Password" value={password} onChange={this.handleChange} />
                     </div>
                     <div className="form-group">
-                        <button type="button" onClick={() => this.onLogin(username, password)} className="btn custom-btn btn-light col">Sign In</button>
-                    </div>
-                    <div className="form-group">
-                        <div className="text-center">
-                            <button className="btn btn-link" onClick={this.onSignUp}>Sign Up</button>
-                        </div>
+                        <button type="button" onClick={() => this.onLogin(username, password)} className="btn custom-btn btn-light col-6">Sign In</button>
+                        <button className="btn custom-btn btn-light col-6" onClick={this.onSignUp}>No User? Sign Up</button>
                     </div>
                 </form> 
                 {

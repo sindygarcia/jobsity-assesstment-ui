@@ -111,6 +111,7 @@ class Chatroom extends React.Component {
 
         return (
             <div className="container mt-5">
+                <div className="col-md-10 offset-0 offset-md-1 text-center app-title"><h2>Chat Assesstment</h2></div>
                 <div name="chatroom" className="form-control overflow-auto messagesArea mb-2" value={chatMessages}>
                    {
                        chatMessages.map( message => {
@@ -135,7 +136,7 @@ class Chatroom extends React.Component {
                 </div>
                 {
                     displayErrorMessage &&
-                        <div class="alert alert-danger" role="alert">Ops! Something went wrong.</div>
+                        <div className="alert alert-danger" role="alert">Ops! Something went wrong.</div>
                 }
             </div>
         );
